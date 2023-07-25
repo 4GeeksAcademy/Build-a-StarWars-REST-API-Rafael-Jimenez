@@ -67,6 +67,70 @@ def get_users():
     all_users = User.query.all()
     return jsonify([user.serialize() for user in all_users]), 200
 
+@app.route('/users/favorites', methods=['GET'])
+def get_AllFavorites():
+    # body = request.json #lo que viene del request como un dic de python 🦎
+    try:
+        listFavs = []
+        listFavsPeople = FavPeople.query.all()
+        listFavsPlanets = FavPlanet.query.all()
+        listFavs = listFavsPeople + listFavsPlanets
+        return jsonify([favorito.serialize() for favorito in listFavs]), 200
+    except Exception as err:
+        return jsonify({"message": "Ah ocurrido un error inesperado ‼️" + str(err)}), 500
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
+def setFavoritePlanet(planet_id):
+    body = request.json  # lo que viene del request como un dic de python 🦎
+    try:
+        user = User.query.filter_by(id=body['id']).one_or_none()
+        favorite = FavPlanet(planet_id, user.id)
+        db.session.add(favorite)  # Memoria RAM de SQLAlchemy
+        db.session.commit()
+        return jsonify(favorite.serialize()), 200
+    except Exception as err:
+        return jsonify({"message": "Ah ocurrido un error inesperado ‼️" + str(err)}), 500
+
+@app.route('/favorite/people/<int:people_id>', methods=['POST'])
+def setFavoritePeople(people_id):
+    body = request.json  # lo que viene del request como un dic de python 🦎
+    try:
+        user = User.query.filter_by(id=body['id']).one_or_none()
+        favorite = FavPeople(people_id, user.id)
+        db.session.add(favorite)  # Memoria RAM de SQLAlchemy
+        db.session.commit()
+        return jsonify(favorite.serialize()), 200
+    except Exception as err:
+        return jsonify({"message": "Ah ocurrido un error inesperado ‼️" + str(err)}), 500
+
+@app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
+def deleteFavoritePlanet(planet_id):
+    body = request.json  # lo que viene del request como un dic de python 🦎
+    try:
+        aux_favorite = FavPlanet.query.filter_by(
+            idPlanet=planet_id, idUser=body['id']).first()
+        if aux_favorite is None:
+            return jsonify({"message": "No existe el elemento a eliminar."}), 200
+        db.session.delete(aux_favorite)  # Memoria RAM de SQLAlchemy
+        db.session.commit()
+        return jsonify(aux_favorite.serialize()), 200
+    except Exception as err:
+        return jsonify({"message": "Ah ocurrido un error inesperado ‼️" + str(err)}), 500
+
+@app.route('/favorite/people/<int:people_id>', methods=['DELETE'])
+def deleteFavoritePeople(people_id):
+    body = request.json  # lo que viene del request como un dic de python 🦎
+    try:
+        aux_favorite = FavPeople.query.filter_by(
+            people_id=people_id, user_id=body['id']).first()
+        if aux_favorite is None:
+            return jsonify({"message": "No existe el elemento a eliminar."}), 200
+        db.session.delete(aux_favorite)  # Memoria RAM de SQLAlchemy
+        db.session.commit()
+        return jsonify(aux_favorite.serialize()), 200
+    except Exception as err:
+        return jsonify({"message": "Ah ocurrido un error inesperado ‼️" + str(err)}), 500
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

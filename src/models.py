@@ -11,6 +11,11 @@ class User(db.Model):
     favpeople = db.relationship('FavPeople', backref="User", lazy=True)
     favplanet = db.relationship('FavPlanet', backref="User", lazy=True) 
 
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.is_active = True
+
     def __repr__(self):
         return '<User %r>' % self.username
 
@@ -43,6 +48,10 @@ class FavPeople(db.Model):
     people_id = db.Column(db.Integer, db.ForeignKey("People.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("User.id"), nullable=False)
 
+    def __init__(self, people_id, user_id):
+        self.people_id = people_id
+        self.user_id = user_id
+
     def serialize(self):
         people = People.query.get(self.people_id)
         user = User.query.get(self.user_id)
@@ -51,7 +60,7 @@ class FavPeople(db.Model):
             "people_id": self.people_id,
             "People" : people.name,
             "user_id": self.user_id,
-            "User" : user.name
+            "User" : user.username
         }
 
 class Planet(db.Model):
@@ -77,6 +86,10 @@ class FavPlanet(db.Model):
     idPlanet = db.Column(db.Integer, db.ForeignKey("Planet.id"), nullable=False)
     idUser = db.Column(db.Integer, db.ForeignKey("User.id"), nullable=False)
 
+    def __init__(self, idPlanet, idUser):
+        self.idPlanet = idPlanet
+        self.idUser = idUser
+
     def serialize(self):
         planet = Planet.query.get(self.idPlanet)
         user = User.query.get(self.idUser)
@@ -85,5 +98,5 @@ class FavPlanet(db.Model):
             "idPlanet": self.idPlanet,
             "Planet" : planet.name,
             "idUser": self.idUser,
-            "User" : user.name
+            "User" : user.username
         }
